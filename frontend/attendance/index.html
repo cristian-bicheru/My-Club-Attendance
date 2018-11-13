@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.1.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.1.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/ui/live/1.0/firebase-ui-auth.js"></script>
+<link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/live/1.0/firebase-ui-auth.css">
+<link rel="stylesheet" type="text/css" href="/style.css">
+<script>
+var backendHostUrl = 'https://backend-dot-myclubattendance.appspot.com';
+var config = {
+  apiKey: "AIzaSyARD36F-FSRHnp4LNRiukES4yt0o6ohnGo",
+  authDomain: "myclubattendance.firebaseapp.com",
+  databaseURL: "https://myclubattendance.firebaseio.com",
+  projectId: "myclubattendance",
+  storageBucket: "myclubattendance.appspot.com",
+  messagingSenderId: "311377687182"
+};
+var userIdToken = null;
+</script>
+<script src="/attendance/main.js"></script>
+<title>My Club Attendance</title>
+</head>
+<body>
+
+<div id="logged-out">
+	<div class="header" id="headerMoving" style="position:fixed;opacity:0.8;text-align:left;max-width:100%">
+		<div style="padding-top:5px;padding-bottom:5px;">
+  		<h4 style="letter-spacing:1px;float:left;padding:15px;margin:0;">My Club Attendance</h4>
+		<a href="/" class="headl"><div class="lbox" style="float:left;max-height:50px"><h4 style="letter-spacing:1px;padding:15px;margin:0;">Home</h4></div></a>
+  		<h4 style="letter-spacing:1px;float:right;padding:15px;margin:0;cursor: default;" alt="loginS" id="loginS">Register / Sign In</h4>
+ 		<div style="clear:both"></div>
+		</div>
+
+	</div>
+	<div id="fader" style="z-index:2;"></div>
+	<div id="loginbox" style="z-index:3;">
+		<div id="ldiv" style="z-index:4;">
+    			<div id="firebaseui-auth-container" style="padding-top:30px;"></div>
+			<h4 style="text-align:center;cursor: default;" alt="loginH" id="loginH" align="center">Cancel</h4>
+		</div>
+	</div>
+	<h4 style="padding-top:80px;text-align:center;">You are not logged in!</h4>
+</div>
+<div id="logged-in">
+	<div class="header" id="headerMoving" style="position:fixed;opacity:0.8;text-align:left;max-width:100%">
+		<div style="padding-top:5px;padding-bottom:5px;">
+  		<h4 style="letter-spacing:1px;float:left;padding:15px;margin:0;">My Club Attendance</h4>
+		<a href="/" class="headl"><div class="lbox" style="float:left;max-height:50px"><h4 style="letter-spacing:1px;padding:15px;margin:0;">Home</h4></div></a>
+		<div style="width:15px;float:left;margin:0;"><h4></h4></div>
+		<div>
+		<h4 style="letter-spacing:1px;float:right;padding:15px;margin:0;cursor: default;" id="sign-out">Sign Out</h4>
+  		<div id="user" style="letter-spacing:1px;float:right;padding:15px 15px 15px 15px;margin:0;"></div>
+		</div>
+ 		<div style="clear:both"></div>
+		</div>
+
+	</div>
+</div>  	
+	<div>
+		<center>
+			<!--<div style="padding-top: 0px;"></div>
+			<div class="tbox" style="padding-top: 80px;padding-bottom:80px;">
+				<h2> Welcome to My Club Attendance! </h2>
+			</div>
+
+
+			<h4 style="padding-top:20px;font-size:22px;"> Currently Open Tally Windows: </h4>-->
+			<div id="renderFrame"></div>
+			
+		</center>
+	</div>
+</body>
+<script>
+loginShow = document.getElementById('loginS');
+loginHide = document.getElementById('loginH');
+
+loginShow.onclick=function(){
+   jQuery("#fader").fadeIn();
+   jQuery("#loginbox").fadeIn();
+}
+loginHide.onclick=function(){
+   jQuery("#fader").fadeOut();
+   jQuery("#loginbox").fadeOut();
+}
+
+function fadein(){
+    jQuery("#headerMoving").fadeIn();
+};
+function fadeout(){
+    jQuery("#headerMoving").fadeOut();
+};
+window.onscroll = function() {moveHeader()};
+function moveHeader() {
+  if (window.pageYOffset > -1) {
+    fadein()
+  } else {
+    fadeout()
+  }
+}
+</script>
+</html>

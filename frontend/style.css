@@ -1,0 +1,467 @@
+html {
+    margin:0;
+    padding:0;
+}
+@media only screen and (max-width: 600px) {
+    h1 {
+      font-family: "Tahoma";
+      font-size: 3.8vw;
+      letter-spacing: 2px;
+    }
+    h2 {
+      font-family: "Tahoma";
+      font-size: 4.1vw;
+      color: #303030;
+    }
+    h3 {
+      font-family: "Tahoma";
+      font-size: 2.7vw;
+      letter-spacing: 0.7px;
+      color: #303030;
+    }
+    h4 {
+      font-size: 2.5vw
+    }
+    .header {
+      top: 0;
+      background: #98ceeb;
+      color: #0c2e40;
+      width:100%;
+    }
+    th, td {
+        padding: 8px;
+    }
+    icon {
+      height = 20vw;
+      width = 20vw;
+    }
+    .content {
+      max-width: 80%;
+      margin: auto;
+      text-align: center;
+    }
+    body {
+      margin-left: 0;
+      margin-right: 0;
+      background: #EBF7FF;
+    }
+    .section {
+      margin-bottom: 64px;
+      text-align: left;
+    }
+    .title {
+      margin-bottom: 64px;
+      margin-top: 64px;
+      text-align: center;
+      color: #606060;
+    }
+}
+@media only screen and (min-width: 600px) {
+    h1 {
+      font-family: "Tahoma";
+      font-size: 2.5vw;
+      letter-spacing: 2px;
+    }
+    h2 {
+      font-family: "Tahoma";
+      font-size: 3.7vw;
+      color: #303030;
+    }
+    h3 {
+      font-family: "Tahoma";
+      font-size: 2.2vw;
+      color: #303030;
+    }
+    h4 {
+      font-size: 2.1vw
+    }
+    .header {
+      top: 0;
+      background: #98ceeb;
+      color: #0c2e40;
+      width:100%;
+    }
+    th, td {
+        padding: 8px;
+    }
+    icon {
+      height = 20vw;
+      width = 20vw;
+    }
+    .content {
+      max-width: 80%;
+      margin: auto;
+      text-align: center;
+    }
+    body {
+      margin-left: 0;
+      margin-right: 0;
+      background: #EBF7FF;
+    }
+    .section {
+      margin-bottom: 64px;
+      text-align: left;
+    }
+    .title {
+      margin-bottom: 64px;
+      margin-top: 64px;
+      text-align: center;
+      color: #606060;
+    }
+}
+@media only screen and (min-width: 768px) {
+    h1 {
+      font-family: "Tahoma";
+      font-size: 2.1vw;
+      letter-spacing: 2px;
+    }
+    h2 {
+      font-family: "Tahoma";
+      font-size: 3.4vw;
+      color: #303030;
+    }
+    h3 {
+      font-family: "Tahoma";
+      font-size: 1.8vw;
+      color: #303030;
+    }
+    h4 {
+      font-size: 1.7vw
+    }
+    .header {
+      top: 0;
+      background: #98ceeb;
+      color: #0c2e40;
+      width:100%;
+    }
+    th, td {
+        padding: 8px;
+    }
+    icon {
+      height = 20vw;
+      width = 20vw;
+    }
+    .content {
+      max-width: 80%;
+      margin: auto;
+      text-align: center;
+    }
+    body {
+      margin-left: 0;
+      margin-right: 0;
+      background: #EBF7FF;
+    }
+    .section {
+      margin-bottom: 64px;
+      text-align: left;
+    }
+    .title {
+      margin-bottom: 64px;
+      margin-top: 64px;
+      text-align: center;
+      color: #606060;
+    }
+}
+@media only screen and (min-width: 992px) {
+    h1 {
+      font-family: "Tahoma";
+      font-size: 1.7vw;
+      letter-spacing: 2px;
+    }
+    h2 {
+      font-family: "Tahoma";
+      font-size: 3.1vw;
+      color: #303030;
+    }
+    h3 {
+      font-family: "Tahoma";
+      font-size: 1.5vw;
+      color: #303030;
+    }
+    h4 {
+      font-size: 1.4vw
+    }
+    .header {
+      top: 0;
+      background: #98ceeb;
+      color: #0c2e40;
+      width:100%;
+    }
+    th, td {
+        padding: 8px;
+    }
+    icon {
+      height = 20vw;
+      width = 20vw;
+    }
+    .content {
+      max-width: 80%;
+      margin: auto;
+      text-align: center;
+    }
+    body {
+      margin-left: 0;
+      margin-right: 0;
+      background: #EBF7FF;
+    }
+    .section {
+      margin-bottom: 64px;
+      text-align: left;
+    }
+    .title {
+      margin-bottom: 64px;
+      margin-top: 64px;
+      text-align: center;
+      color: #606060;
+    }
+}
+@media only screen and (min-width: 1200px) {
+    h1 {
+      font-family: "Tahoma";
+      font-size: 1.4vw;
+      letter-spacing: 2px;
+    }
+    h2 {
+      font-family: "Tahoma";
+      font-size: 2.8vw;
+      color: #303030;
+    }
+    h3 {
+      font-family: "Tahoma";
+      font-size: 1.1vw;
+      color: #303030;
+    }
+    h4 {
+      font-size: 1vw
+    }
+    .header {
+      top: 0;
+      background: #98ceeb;
+      color: #0c2e40;
+      width:100%;
+    }
+    th, td {
+        padding: 8px;
+    }
+    icon {
+      height = 20vw;
+      width = 20vw;
+    }
+    .content {
+      max-width: 72%;
+      margin: auto;
+      text-align: center;
+    }
+    body {
+      margin-left: 0;
+      margin-right: 0;
+      background: #EBF7FF;
+    }
+    .section {
+      margin-bottom: 128px;
+      text-align: left;
+    }
+    .title {
+      margin-bottom: 128px;
+      margin-top: 128px;
+      text-align: center;
+      color: #606060;
+    }
+}
+#loginbox {
+    width: 320px;
+    height: 200px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin: -100px 0 0 -160px;
+    display: none;
+}
+#fader {
+    background: black;
+    opacity: .5;
+    -moz-opacity: .5;
+    -filter: alpha(opacity=50);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display: none;
+}
+#ldiv {
+    width: 320px;
+    background: white;
+    border: 2px #5a5a5a solid;
+}
+body {
+  font-family: "helvetica", sans-serif;
+}
+form {
+  padding: 0 0 0px;
+  margin-bottom: 30px;
+}
+
+div.form-group {
+   margin-bottom: 10px;
+}
+
+input, textarea {
+  width: 250px;
+  font-size: 14px;
+  padding: 0px;
+}
+
+textarea {
+  vertical-align: top;
+  height: 75px;
+}
+
+* {box-sizing: border-box}
+.mySlides {display: none}
+img {vertical-align: middle;}
+
+/* Slideshow container */
+.slideshow-container {
+  max-width: 1000px;
+  position: relative;
+  margin: auto;
+}
+
+/* Next & previous buttons */
+.prev, .next {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  width: auto;
+  padding: 16px;
+  margin-top: -22px;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  transition: 0.6s ease;
+  border-radius: 0 3px 3px 0;
+}
+
+/* Position the "next button" to the right */
+.next {
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.prev {
+  left: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover, .next:hover {
+  background-color: rgba(0,0,0,0.8);
+}
+
+/* Caption text */
+.text {
+  color: #f2f2f2;
+  font-family: "helvetica", sans-serif;
+  font-size: 22px;
+  padding: 8px 12px;
+  position: absolute;
+  bottom: 8px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Number text (1/3 etc) */
+.numbertext {
+  color: #f2f2f2;
+  font-size: 12px;
+  padding: 8px 12px;
+  position: absolute;
+  top: 0;
+}
+
+/* The dots/bullets/indicators */
+.dot {
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.6s ease;
+}
+
+.active, .dot:hover {
+  background-color: #717171;
+}
+
+/* Fading animation */
+.fade {
+  -webkit-animation-name: fade;
+  -webkit-animation-duration: 1.5s;
+  animation-name: fade;
+  animation-duration: 1.5s;
+}
+
+@-webkit-keyframes fade {
+  from {opacity: .4} 
+  to {opacity: 1}
+}
+
+@keyframes fade {
+  from {opacity: .4} 
+  to {opacity: 1}
+}
+
+/* On smaller screens, decrease text size */
+@media only screen and (max-width: 900px) {
+  .prev, .next,.text {font-size: 11px}
+}
+.lbox {
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 8px;
+  border-color: #d0e9f6;
+  
+}
+.tbox {
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 0px;
+  border-color: white;
+  max-width: 100%;
+  background: white;
+  
+}
+.headl {
+  color: #0c2e40;
+}
+.row {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 40px;
+	border-bottom: 1px solid #AFAFAF;
+}
+.name {
+	position: relative;
+	display: inline-block;
+	width: 75%;
+	line-height: 45px;
+}
+.score {
+	position: relative;
+	display: inline-block;
+	width: 25%;
+}
+.mboard {
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 10px;
+  border-color: white;
+  max-width: 100%;
+  background: white;
+  min-height: 200px;
+
+ }

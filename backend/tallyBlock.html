@@ -1,0 +1,54 @@
+<script>
+var backendHostUrl = 'https://backend-dot-myclubattendance.appspot.com';
+var config = {
+  apiKey: "AIzaSyARD36F-FSRHnp4LNRiukES4yt0o6ohnGo",
+  authDomain: "myclubattendance.firebaseapp.com",
+  databaseURL: "https://myclubattendance.firebaseio.com",
+  projectId: "myclubattendance",
+  storageBucket: "myclubattendance.appspot.com",
+  messagingSenderId: "311377687182"
+};
+var userIdToken = null;
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    user.getToken().then(function(idToken) {
+              userIdToken = idToken;
+    });
+  }
+});
+  var openWindow&CLUB& = $('#tally&CLUB&');
+  openWindow&CLUB&.click(function(event) {
+    event.preventDefault();
+
+    $.ajax(backendHostUrl + '/tally', {
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      },
+      method: 'POST',
+      data: JSON.stringify({'club': '&CLUBN&'}),
+      contentType : 'application/json'
+    }).then(function(){
+      renderHtml();
+    });
+
+  });
+  function renderHtml() {
+    $.ajax(backendHostUrl + '/loadtallywindows', {
+      /* Set header for the XMLHttpRequest to get data from the web server
+      associated with userIdToken */
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      }
+    }).then(function(data){
+      $('#tallyFrame').empty();
+      $('#tallyFrame').append($(data));
+    });
+  }
+</script>
+<span style="display:inline-block;width:400px;height:200px;padding:15px;border:2px solid black;">
+<div id="&CLUB&">
+<h4> &CLUBN& <h4>
+<!--tally window status-->
+<button id="tally&CLUB&">Tally</button>
+</div>
+</span>

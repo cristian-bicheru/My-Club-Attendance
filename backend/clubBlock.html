@@ -1,0 +1,61 @@
+<script>
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    user.getToken().then(function(idToken) {
+              userIdToken = idToken;
+    });
+  }
+});
+  var openWindow&CLUB& = $('#open&CLUB&');
+  openWindow&CLUB&.click(function(event) {
+    event.preventDefault();
+
+    $.ajax(backendHostUrl + '/tallywindow', {
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      },
+      method: 'POST',
+      data: JSON.stringify({'club': '&CLUBN&', 'action': 'open'}),
+      contentType : 'application/json'
+    }).then(function(){
+      renderHtml();
+    });
+
+  });
+  var closeWindow&CLUB& = $('#close&CLUB&');
+  closeWindow&CLUB&.click(function(event) {
+    event.preventDefault();
+
+    $.ajax(backendHostUrl + '/tallywindow', {
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      },
+      method: 'POST',
+      data: JSON.stringify({'club': '&CLUBN&', 'action': 'close'}),
+      contentType : 'application/json'
+    }).then(function(){
+      renderHtml();
+    });
+
+  });
+  function renderHtml() {
+    $.ajax(backendHostUrl + '/myattendance', {
+      /* Set header for the XMLHttpRequest to get data from the web server
+      associated with userIdToken */
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      }
+    }).then(function(data){
+      $('#renderFrame').empty();
+      $('#renderFrame').append($(data));
+    });
+  }
+</script>
+<span style="display:inline-block;width:400px;height:200px;padding:15px;border:2px solid black;">
+<div id="&CLUB&">
+<h4> &CLUBN& <h4>
+<!--tally window status-->
+<button id="open&CLUB&">Open Tally Window</button>
+<button id="close&CLUB&">Close Tally Window</button>
+</div>
+</span>

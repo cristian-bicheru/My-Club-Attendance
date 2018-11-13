@@ -1,0 +1,110 @@
+<div style="padding-top:80px">
+<script>
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    user.getToken().then(function(idToken) {
+              userIdToken = idToken;
+    });
+  }
+});
+  var clubEntry = $('#club');
+  var execEntry = $('#exec');
+  var addclub = $('#addclub');
+  addclub.click(function(event) {
+    event.preventDefault();
+    var Club = clubEntry.val();
+    var Exec = execEntry.val();
+    clubEntry.val("");
+    execEntry.val("");
+
+    $.ajax(backendHostUrl + '/addclub', {
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      },
+      method: 'POST',
+      data: JSON.stringify({'club': Club, 'exec': Exec}),
+      contentType : 'application/json'
+    }).then(function(){
+      clubEntry.empty();
+      execEntry.empty();
+      renderHtml();
+    });
+
+  });
+
+  var clubEntryDel = $('#clubDel');
+  var delclub = $('#delclub');
+  delclub.click(function(event) {
+    event.preventDefault();
+    var ClubD = clubEntryDel.val();
+    clubEntryDel.val("");
+
+    $.ajax(backendHostUrl + '/delclub', {
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      },
+      method: 'POST',
+      data: JSON.stringify({'club': ClubD}),
+      contentType : 'application/json'
+    }).then(function(){
+      clubEntryDel.empty();
+      renderHtml();
+    });
+
+  });
+
+  var club2Entry = $('#club2');
+  var exec2Entry = $('#exec2');
+  var addclub = $('#delexec');
+  addclub.click(function(event) {
+    event.preventDefault();
+    var Club2 = club2Entry.val();
+    var Exec2 = exec2Entry.val();
+    club2Entry.val("");
+    exec2Entry.val("");
+
+    $.ajax(backendHostUrl + '/delexec', {
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      },
+      method: 'POST',
+      data: JSON.stringify({'club': Club2, 'exec': Exec2}),
+      contentType : 'application/json'
+    }).then(function(){
+      club2Entry.empty();
+      exec2Entry.empty();
+      renderHtml();
+    });
+
+  });
+
+  function renderHtml() {
+    $.ajax(backendHostUrl + '/myattendance', {
+      /* Set header for the XMLHttpRequest to get data from the web server
+      associated with userIdToken */
+      headers: {
+        'Authorization': 'Bearer ' + userIdToken
+      }
+    }).then(function(data){
+      $('#renderFrame').empty();
+      $('#renderFrame').append($(data));
+    });
+  }  
+</script>
+<center>
+	<h4> Add New Club/Exec </h4>
+	<input id="club" type="text" placeholder="Enter a Club Name">
+	<input id="exec" type="text" placeholder="Enter an Exec">
+	<button id="addclub">Add Club</button>
+	<h4> Delete A Club </h4>
+	<input id="clubDel" type="text" placeholder="Enter a Club Name">
+	<button id="delclub">Delete Club (No Way To Undo!!)</button>
+	<h4> Remove An Exec </h4>
+	<input id="club2" type="text" placeholder="Enter a Club Name">
+	<input id="exec2" type="text" placeholder="Enter an Exec">
+	<button id="delexec">Remove Exec</button>
+	<h4> Club List: </h4>
+	<div id="clubList">
+	</div>
+</center>
+</div>
