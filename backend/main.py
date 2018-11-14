@@ -1,19 +1,6 @@
-# Copyright 2016 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Built on top of the 'FireNotes' Firebase example. Coded by Cristian Bicheru 2018 
 
 import logging
-
 from flask import Flask, jsonify, request
 import flask_cors
 from google.appengine.ext import ndb
@@ -23,6 +10,8 @@ import requests_toolbelt.adapters.appengine
 import calendar
 import time
 
+
+# Import all of the template html files.
 with open('adminHtml.html', 'r') as html:
     adminHtml = html.read()
 with open('execHtml.html', 'r') as html:
@@ -35,6 +24,10 @@ with open('tallyBlock.html', 'r') as html:
     tallyBlock = html.read()
 with open('timerCode.html', 'r') as html:
     timerCode = html.read()
+# End import.
+
+# Define the end of the 'clubList' div. This is used to split the html files
+# in certain functions.
 clubListDiv = 'id="clubList">\n'
 
 # Use the App Engine Requests adapter. This makes sure that Requests uses
@@ -45,6 +38,8 @@ HTTP_REQUEST = google.auth.transport.requests.Request()
 app = Flask(__name__)
 flask_cors.CORS(app)
 
+# Define the 'Account' class which is used for all user accounts and backend
+# data.
 class Account(ndb.Model):
     email = ndb.StringProperty()
     clubData = ndb.StringProperty(repeated=True)
@@ -53,7 +48,7 @@ class Account(ndb.Model):
 
 
 # [START gae_python_query_database]
-def query_database(user_id): #before live production, rewrite this to be in terms of email and not uid for ease of access
+def query_database(user_id):
     ancestor_key = ndb.Key(Account, user_id)
     query = Account.query(ancestor=ancestor_key).order(-Account.created)
     accountData = query.fetch()
@@ -62,6 +57,7 @@ def query_database(user_id): #before live production, rewrite this to be in term
     if len(accountData) > 0:
         accountData = accountData[0]
         acDataParsed.append({
+            'key': accountData.key,
             'email': accountData.email,
             'clubData': accountData.clubData,
             'isExec': accountData.isExec,
@@ -71,29 +67,54 @@ def query_database(user_id): #before live production, rewrite this to be in term
     return acDataParsed
 # [END gae_python_query_database]
 
+# Define the function which renders the panel shown to admins in the
+# attendance page on the UI.
 def renderAdminHtml(data):
+    # Query database for the server data (sometimes referred to as the club ledger,
+    # since it contains a list of all the clubs)
     sdata = query_database('backend-server')[0]
+
+    # The clubData element contains all the clubs as mentioned in the previous comment.
     clubs = sdata['clubData']
-    
+
+    # Split the template html by the clubListDiv.
     divLocation = adminHtml.find(clubListDiv)+len(clubListDiv)
     htmls = adminHtml[:divLocation]
     htmle = adminHtml[divLocation:]
+
     for club in clubs:
-        htmls += '<h4>'+club+": "
+        # Open an h4 heading and add the club name.
+        htmls += '<h4>' + club + ": "
+
+        # Query for the club and get the list of execs.
         query = query_database(club)[0]['clubData']
+
+        # If the list of execs is empty, relay this info to the admin and close the heading.
         if len(query) == 0:
-            htmls += 'There are no execs in this club!\n'
+            htmls += 'There are no execs in this club!</h4>\n'
+
+        # Otherwise, add each exec to the html and close the heading.
         else:
             for Exec in query[:-1]:
                 htmls += Exec+", "
-            htmls += query[-1]+"\n"
-    htmls += '</h4>'
+            htmls += query[-1]+"</h4>\n"
+
+    # Recombine the html parts and return the result.
     return htmls+htmle
 
+# Define the function which formats a club block for the exec panel.
 def formatClubBlock(club):
+    # Replace the club block template's placeholders with the values for the club.
+    # &CLUB& tags should be replaced with the club name after spaces (and special
+    # characters, but this has yet to be implemented) have been removed. &CLUBN&
+    # Tags should be replaced with whatever the club's name is.
     html = clubBlock.replace('&CLUB&', club.replace(' ', '_')).replace('&CLUBN&', club)
+
+    # Query the club and set the clubData equal to the clubdata found in the query.
     cdata = query_database(club)[0]
     clubData = cdata['clubData']
+
+    # This is the term where the tally window timer is stored.
     timerterm = club+".tallywindowtimer."
     for i in range(0, len(clubData)):
         if clubData[i].startswith(timerterm):
@@ -129,7 +150,7 @@ def renderStandardHtml(data):
 def checkForPromotion(data, uid):
     if data['email'] == 'c.bicheru0@gmail.com':
         newData = Account(
-            parent=ndb.Key(Account, uid),
+            key=data['key'],
             email=data['email'],
             clubData=data['clubData'],
             isExec=['admin'])
@@ -154,7 +175,7 @@ def checkForPromotion(data, uid):
             if club not in sdata and club != 'admin':
                 data['isExec'].remove(club)
         newData = Account(
-        parent=ndb.Key(Account, uid),
+        key=data['key'],
         email=data['email'],
         clubData=data['clubData'],
 	isExec=data['isExec'])
@@ -225,7 +246,7 @@ def checkForTallyReset(data):
                     break
 
         newClub = Account(
-            parent=ndb.Key(Account, club),
+            key=oldClubData['key'],
             clubData=[],
             isExec=[])
         newClub.clubData = oldCData
@@ -316,7 +337,7 @@ def recordTally():
                     cdata.append(alreadyTallyedTerm+claims['sub']+']')
 
                 newClubData = Account(
-                    parent=ndb.Key(Account, Club),
+                    key=clubData['key'],
                     clubData=cdata,
                     isExec=clubData['isExec'])
 
@@ -325,7 +346,7 @@ def recordTally():
                 oldData = query_database(claims['sub'])[0]
                 
                 acData = Account(
-                    parent=ndb.Key(Account, claims['sub']),
+                    key=oldData['key'],
                     clubData=[],
                     isExec=[])
 
@@ -377,7 +398,7 @@ def register():
     if len(data) > 0:
         if data[0]['email'] != receivedEmail:
             acData = Account(
-                parent=ndb.Key(Account, claims['sub']),
+                key=data[0]['key'],
                 clubData=data[0]['clubData'],
                 isExec=data[0]['isExec'])
             acData.email = receivedEmail
@@ -438,15 +459,16 @@ def deleteClub():
     oldClub = oldClub[0]
 
     newLedger = Account(
-            parent=ndb.Key(Account, 'backend-server'),
+            key=oldLedger['key'],
             clubData=[],
             isExec=[])
     oldLedger['clubData'].remove(Club)
     newLedger.clubData = oldLedger['clubData']
     newLedger.isExec.append('server')
     newLedger.put()
-    
-    ndb.Key(Account, Club).delete()
+
+    uid = int(str(oldClub['key']).split("'Account', ")[-1][:-1])
+    ndb.Key(Account, uid).delete()
     
     return 'Club Deleted Successfully.', 200
 
@@ -485,7 +507,7 @@ def addClub():
     if Club in clubLedger['clubData']:
         oldClub = query_database(Club)[0]
         newClub = Account(
-            parent=ndb.Key(Account, Club),
+            key=oldClub['key'],
             clubData=[],
             isExec=[])
         newClub.clubData = oldClub['clubData'] + [Exec]
@@ -502,7 +524,7 @@ def addClub():
         newClub.put()
 
     newLedger = Account(
-            parent=ndb.Key(Account, 'backend-server'),
+            key=clubLedger['key'],
             clubData=[],
             isExec=[])
     newLedger.clubData = clubLedger['clubData']
@@ -598,7 +620,7 @@ def deleteExec():
         return 'Exec Not An Exec', 400
     
     newClub = Account(
-            parent=ndb.Key(Account, Club),
+            key=oldClub['key'],
             clubData=[],
             isExec=[])
     
@@ -682,7 +704,7 @@ def modifyTallyWindow():
     
     
     newClub = Account(
-            parent=ndb.Key(Account, Club),
+            key=oldClub['key'],
             clubData=[],
             isExec=[])
     
