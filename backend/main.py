@@ -1,4 +1,4 @@
-# Built on top of the 'FireNotes' Firebase example. Coded by Cristian Bicheru 2018 
+# Built on top of the 'FireNotes' Firebase example. Coded by Cristian Bicheru 2018
 
 import logging
 from flask import Flask, jsonify, request
@@ -26,9 +26,11 @@ with open('timerCode.html', 'r') as html:
     timerCode = html.read()
 # End import.
 
+
 # Define the end of the 'clubList' div. This is used to split the html files
 # in certain functions.
 clubListDiv = 'id="clubList">\n'
+
 
 # Use the App Engine Requests adapter. This makes sure that Requests uses
 # URLFetch.
@@ -37,6 +39,7 @@ HTTP_REQUEST = google.auth.transport.requests.Request()
 
 app = Flask(__name__)
 flask_cors.CORS(app)
+
 
 # Define the 'Account' class which is used for all user accounts and backend
 # data.
@@ -57,15 +60,16 @@ def query_database(user_id):
     if len(accountData) > 0:
         accountData = accountData[0]
         acDataParsed.append({
-            'key': accountData.key,
-            'email': accountData.email,
-            'clubData': accountData.clubData,
-            'isExec': accountData.isExec,
-            'created': accountData.created
+            'key'       : accountData.key,
+            'email'     : accountData.email,
+            'clubData'  : accountData.clubData,
+            'isExec'    : accountData.isExec,
+            'created'   : accountData.created
         })
 
     return acDataParsed
 # [END gae_python_query_database]
+
 
 # Define the function which renders the panel shown to admins in the
 # attendance page on the UI.
@@ -102,6 +106,7 @@ def renderAdminHtml(data):
     # Recombine the html parts and return the result.
     return htmls+htmle
 
+
 # Define the function which formats a club block for the exec panel.
 def formatClubBlock(club):
     # Replace the club block template's placeholders with the values for the club.
@@ -116,30 +121,47 @@ def formatClubBlock(club):
 
     # This is the term where the tally window timer is stored.
     timerterm = club+".tallywindowtimer."
+
     for i in range(0, len(clubData)):
+        # If the term begins with the defined timerterm:
         if clubData[i].startswith(timerterm):
+            # Split the term to get the actual time.
             tallywtime = clubData[i].split(timerterm)[1]
+
+            # If the current time is not past the tally window time:
             if calendar.timegm(time.gmtime()) < tallywtime:
+                # Split the html by the split term and insert the timer code with the proper formatting.
                 html = html.split("<!--tally window status-->\n")
                 html.insert(1, timerCode.replace('&CLUB&', club.replace(' ', '_')).replace('&TIME&', str(float(tallywtime)*1000)))
                 html = ''.join(html)
             else:
+                # Otherwise just add that the tally window is currently closed.
                 html = html.replace('<!--tally window status-->', '<h4>Window Closed</h4>')
     return html
 
+
+# Define the function which renders the exec panel.
 def renderExecHtml(data):
-    
+    # Split the execHtml template by the clubListDiv.
     divLocation = execHtml.find(clubListDiv)+len(clubListDiv)
     htmls = execHtml[:divLocation]
     htmle = execHtml[divLocation:]
-    
+
+    # For each club in the exec is an exec of, format a club block.
     for club in data['isExec']:
         htmls += formatClubBlock(club)
     return htmls+htmle
 
+
+# Define the function which renders the attendance panel for regular users.
 def renderStandardHtml(data):
+    # Split the template html by the clubListDiv.
     html = standardHtml.split(clubListDiv)
+
+    # Define cdata to be the user's clubData.
     cdata = data['clubData']
+
+    # Then, for each club in their cdata, add the number of times they've tallyed in a heading.
     for each in cdata:
         if '.tally.' in each:
             club, tallyCount = each.split('.tally.')
@@ -147,82 +169,153 @@ def renderStandardHtml(data):
     return ''.join(html)
 
 
+# This function is called when signing in and checks for any
+# changes to the account (as in if they became an exec or were
+# kicked off an exec team).
 def checkForPromotion(data, uid):
+    # If the email is my email, make the account admin.
     if data['email'] == 'c.bicheru0@gmail.com':
         newData = Account(
-            key=data['key'],
-            email=data['email'],
+            key     =data['key'],
+            email   =data['email'],
             clubData=data['clubData'],
-            isExec=['admin'])
+            isExec  =['admin'])
         newData.put()
+
+    # Query the server and save it in the sdata variable.
     sdata = query_database('backend-server')
+
+    # If there is a club ledger:
     if len(sdata) > 0:
+        # Redefine sdata to be the clubData in the ledger.
         sdata = sdata[0]['clubData']
+
+        # Define the email as a variable.
         email = data['email']
+
         for club in sdata:
+            # Query the database for the club.
             cdata = query_database(club)
+
+            # If the query returned no results but the club is still in the
+            # exec's data, remove it.
             if len(cdata) == 0 and club in data['isExec']:
                 data['isExec'].remove(club)
+
             else:
                 cdata = cdata[0]
+
+                # Otherwise if the email is in the club's exec list but not the user's list,
+                # add the club to the user's exec list.
                 if email in cdata['clubData']:
                     if club not in data['isExec']:
                         data['isExec'].append(club)
+
+                # And if the email happens to not be in the club's exec list but in the user's list,
+                # remove the club from the user's exec list.
                 if email not in cdata['clubData']:
                     if club in data['isExec']:
                         data['isExec'].remove(club)
+
+        # If the club is in the user's exec list but not the club ledger, remove
+        # the club from the user's list.
         for club in data['isExec']:
             if club not in sdata and club != 'admin':
                 data['isExec'].remove(club)
+
+        # Update the user's account data with the new data.
         newData = Account(
-        key=data['key'],
-        email=data['email'],
-        clubData=data['clubData'],
-	isExec=data['isExec'])
-        newData.put()
+            key     =data['key'],
+            email   =data['email'],
+            clubData=data['clubData'],
+            isExec  =data['isExec'])
+            newData.put()
+
+    # Otherwise, if the club ledger does not exist:
     else:
+        # Log that something bad has likely happened to the database.
         logging.exception('mega yikes')
 
+
+# Define the function which formats an indivdual tally block.
 def formatTallyBlock(club, etime):
+    # Format the template 'tallyBlock' html and insert the countdown timer.
     thtml = tallyBlock.replace('&CLUB&', club.replace(' ', '_')).replace('&CLUBN&', club)
     thtml = thtml.split("<!--tally window status-->\n")
     thtml.insert(1, timerCode.replace('&CLUB&', club.replace(' ', '_')).replace('&TIME&', str(float(etime)*1000)))
     thtml = ''.join(thtml)
     return thtml
 
+
+# Define the function which renders the entire tally container.
 def renderTallyContainer(data, uid):
+    # Query the database for the club ledger and store it as sdata.
     sdata = query_database('backend-server')
+
+    # If the query wasn't empty, continue as normal.
     if len(sdata) > 0:
+        # Define an empty html variable and the sdata variable as the clubData entry.
         html = ""
         sdata = sdata[0]['clubData']
+
+        # For each club in the ledger:
         for club in sdata:
+            # Define the terms used to split the timer and tallyed list.
             timerterm = club+".tallywindowtimer."
             alreadyTallyedTerm = club+".tallyed.["
+
+            # Query the database for the club and store the clubData as cdata.
             cdata = query_database(club)[0]['clubData']
 
+            # Define the alreadyTallyed boolean to be 0.
             alreadyTallyed = 0
+
+            # For each in the clubData:
             for each in cdata:
+
+                # If it is the alreadyTallyed list:
                 if each.startswith(alreadyTallyedTerm):
+
+                    # Generate a list of the UIDs from the data.
                     UIDs = each.split(alreadyTallyedTerm)[1].split(']')[0].split(', ')
+
+                    # If the user's UID is in the alreadyTallyed list, set the boolean to True and break.
                     if uid in UIDs:
                         alreadyTallyed = 1
                     break
+
+            # If the user has not already tallyed this session and the tally window has
+            # not expired yet:
             if alreadyTallyed == 0:
                 for each in cdata:
                     if each.startswith(timerterm):
                         etime = float(each.split(timerterm)[1])
                         if calendar.timegm(time.gmtime()) < etime:
+
+                            # Format and add a tally block to the html.
                             html += formatTallyBlock(club, etime)
                         break
         return html
-                    
+    # If for some reason, the club ledger is missing:
     else:
+        # Log that something bad has probably happened to the database.
         logging.exception('mega yikes')
 
+
+# Defines the function which renders the tally container for 'elevated' users.
 def renderElevatedTallyContainer(data):
     return '<h4>No tallying for admins or execs!</h4>'
 
+
+# Define the function which checks if the tally window has expired and
+# resets the alreadyTallyed list, along with the tally window timer.
 def checkForTallyReset(data):
+    # For each club the exec is an exec of (the reason we don't check
+    # every club is because the alreadyTallyed only needs to be reset
+    # when reopening the tally window, and an exec of any given club
+    # must render the panel in order to open the window, hence it saves
+    # some database queries and accomplishes the same goal), check to
+    # see if the club window has expired and reset the data if it has.
     cdata = data['isExec']
 
     for club in cdata:
@@ -236,43 +329,25 @@ def checkForTallyReset(data):
             if each.startswith(timerterm):
                 if calendar.timegm(time.gmtime()) > float(each.split(timerterm)[1]):
                     oldCData[i] = timerterm+'0'
-                    
+
                     for i2 in range(0, len(oldCData)):
                         each2 = oldCData[i2]
                         if each2.startswith(alreadyTallyedTerm):
                             oldCData[i2] = alreadyTallyedTerm+']'
                             break
-                    
+
                     break
 
         newClub = Account(
-            key=oldClubData['key'],
+            key     =oldClubData['key'],
             clubData=[],
-            isExec=[])
+            isExec  =[])
         newClub.clubData = oldCData
         newClub.isExec.append('server')
         newClub.put()
-        
-        
-
-@app.route('/getdata', methods=['GET'])
-def list_notes():
-    """Returns a list of notes added by the current Firebase user."""
-
-    # Verify Firebase auth.
-    # [START gae_python_verify_token]
-    id_token = request.headers['Authorization'].split(' ').pop()
-    claims = google.oauth2.id_token.verify_firebase_token(
-        id_token, HTTP_REQUEST)
-    if not claims:
-        return 'Unauthorized', 401
-    # [END gae_python_verify_token]
-
-    accountData = query_database(claims['sub'])
-
-    return jsonify(accountData)
 
 
+# Define the tally function.
 @app.route('/tally', methods=['POST', 'PUT'])
 def recordTally():
 
@@ -283,34 +358,44 @@ def recordTally():
     if not claims:
         return 'Unauthorized', 401
 
-
+    # Get the club the user's is requesting to tally.
     Club = request.get_json()['club']
 
+    # Query the database for the club ledger.
     clubLedger = query_database('backend-server')
 
+    # If there are multiple ledgers, log this.
     if len(clubLedger) > 1:
         logging.exception('multiple ledgers detected?!?!?')
 
     clubLedger = clubLedger[0]
-    
-    
+
+    # If the requested club is not in the ledger, raise an error and log it.
     if Club not in clubLedger['clubData']:
         logging.exception('A tally for club '+Club+' was requested by UID '+claims['sub']+'.')
         return 'Club does not exist', 400
 
+    # Otherwise query for the club.
     clubData = query_database(Club)
 
+    # If multiple instances of the club were detected, log this.
     if len(clubData) > 1:
         logging.exception('multiple instances of '+Club+' were detected?!?!?')
-        
+
     clubData = clubData[0]
 
+    # Define the term with which we will split the timer data in order to get
+    # the window close time.
     timerterm = Club+".tallywindowtimer."
 
+    # Define the boolean exist to be False by default, and cdata to be the
+    # Club's clubData.
     exist = 0
-
     cdata = clubData['clubData']
-    
+
+    # This for loop checks each item in the cdata in order to find the timer
+    # and alreadyTallyed list. If the user has already tallyed or the window
+    # is closed at the time of the tally, return a 401 Unauthorized.
     for each in cdata:
         if each.startswith(timerterm):
             etime = each.split(timerterm)[1]
@@ -319,7 +404,7 @@ def recordTally():
                 exist2 = 0
 
                 alreadyTallyedTerm = Club+".tallyed.["
-                
+
                 for i in range(0, len(cdata)):
                     each2 = cdata[i]
                     if each2.startswith(alreadyTallyedTerm):
@@ -337,23 +422,23 @@ def recordTally():
                     cdata.append(alreadyTallyedTerm+claims['sub']+']')
 
                 newClubData = Account(
-                    key=clubData['key'],
+                    key     =clubData['key'],
                     clubData=cdata,
-                    isExec=clubData['isExec'])
+                    isExec  =clubData['isExec'])
 
                 newClubData.put()
-                
+
                 oldData = query_database(claims['sub'])[0]
-                
+
                 acData = Account(
-                    key=oldData['key'],
+                    key     =oldData['key'],
                     clubData=[],
-                    isExec=[])
+                    isExec  =[])
 
                 tallyTerm = Club+'.tally.'
                 exist3 = 0
                 ocdata = oldData['clubData']
-                
+
                 for i in range(0, len(ocdata)):
                     each3 = ocdata[i]
                     if each3.startswith(tallyTerm):
@@ -363,7 +448,7 @@ def recordTally():
                         break
 
                 if exist3 == 0:
-                    ocdata.append(tallyTerm+'1') 
+                    ocdata.append(tallyTerm+'1')
 
                 acData.email = oldData['email']
                 acData.isExec = oldData['isExec']
@@ -379,7 +464,6 @@ def recordTally():
     else:
         return 'Tally Window is not open', 401
 
-    
 
 @app.route('/register', methods=['POST', 'PUT'])
 def register():
@@ -394,13 +478,13 @@ def register():
 
     if receivedEmail.split('@')[1] != 'wrdsb.ca' and receivedEmail != 'c.bicheru0@gmail.com':
         return 'Only WRDSB emails are allowed, please sign in with your school email.', 401
-    
+
     if len(data) > 0:
         if data[0]['email'] != receivedEmail:
             acData = Account(
-                key=data[0]['key'],
+                key     =data[0]['key'],
                 clubData=data[0]['clubData'],
-                isExec=data[0]['isExec'])
+                isExec  =data[0]['isExec'])
             acData.email = receivedEmail
             acData.put()
             checkForPromotion(query_database(claims['sub'])[0], claims['sub'])
@@ -408,18 +492,19 @@ def register():
         else:
             checkForPromotion(data[0], claims['sub'])
         return 'You are already registered!', 200
-    
+
     acData = Account(
-        parent=ndb.Key(Account, claims['sub']),
+        parent  =ndb.Key(Account, claims['sub']),
         clubData=[],
-	isExec=[])
+	isExec  =[])
 
     acData.email = receivedEmail
-    
+
     acData.put()
-    
+
     checkForPromotion(query_database(claims['sub'])[0], claims['sub'])
     return 'Registration Successful.', 200
+
 
 @app.route('/delclub', methods=['POST', 'PUT'])
 def deleteClub():
@@ -430,7 +515,7 @@ def deleteClub():
         return 'Unauthorized', 401
 
     data = query_database(claims['sub'])
-    
+
     if len(data) > 1:
         logging.exception('multiple instances found on account '+data[0].email)
 
@@ -459,9 +544,9 @@ def deleteClub():
     oldClub = oldClub[0]
 
     newLedger = Account(
-            key=oldLedger['key'],
+            key     =oldLedger['key'],
             clubData=[],
-            isExec=[])
+            isExec  =[])
     oldLedger['clubData'].remove(Club)
     newLedger.clubData = oldLedger['clubData']
     newLedger.isExec.append('server')
@@ -469,8 +554,9 @@ def deleteClub():
 
     uid = int(str(oldClub['key']).split("'Account', ")[-1][:-1])
     ndb.Key(Account, uid).delete()
-    
+
     return 'Club Deleted Successfully.', 200
+
 
 @app.route('/addclub', methods=['POST', 'PUT'])
 def addClub():
@@ -479,27 +565,27 @@ def addClub():
         id_token, HTTP_REQUEST)
     if not claims:
         return 'Unauthorized', 401
-    
+
     data = query_database(claims['sub'])
-    
+
     if len(data) > 1:
         logging.exception('multiple instances found on account '+data[0].email)
 
     json = request.get_json()
     Club, Exec = json['club'], json['exec']
-    
+
     if data[0]['isExec'][0] != 'admin' and Club not in data[0]['isExec']:
         return 'Unauthorized', 401
-    
+
     oldLedger = query_database('backend-server')
 
     if len(oldLedger) > 0:
         clubLedger = oldLedger[0]
     else:
         clubLedger = Account(
-            parent=ndb.Key(Account, 'backend-server'),
+            parent  =ndb.Key(Account, 'backend-server'),
             clubData=[],
-            isExec=[])
+            isExec  =[])
         clubLedger.isExec.append('server')
         clubLedger.put()
         clubLedger = query_database('backend-server')[0]
@@ -507,31 +593,32 @@ def addClub():
     if Club in clubLedger['clubData']:
         oldClub = query_database(Club)[0]
         newClub = Account(
-            key=oldClub['key'],
+            key     =oldClub['key'],
             clubData=[],
-            isExec=[])
+            isExec  =[])
         newClub.clubData = oldClub['clubData'] + [Exec]
         newClub.isExec.append('server')
         newClub.put()
     else:
         clubLedger['clubData'].append(Club)
         newClub = Account(
-            parent=ndb.Key(Account, Club),
+            parent  =ndb.Key(Account, Club),
             clubData=[],
-            isExec=[])
+            isExec  =[])
         newClub.isExec.append('server')
         newClub.clubData.append(Exec)
         newClub.put()
 
     newLedger = Account(
-            key=clubLedger['key'],
+            key     =clubLedger['key'],
             clubData=[],
-            isExec=[])
+            isExec  =[])
     newLedger.clubData = clubLedger['clubData']
     newLedger.isExec.append('server')
     newLedger.put()
 
     return 'Club Added Successfully', 200
+
 
 @app.route('/myattendance', methods=['GET'])
 def returnMyAttendance():
@@ -541,12 +628,12 @@ def returnMyAttendance():
         id_token, HTTP_REQUEST)
     if not claims:
         return 'Unauthorized', 401
-    
+
     data = query_database(claims['sub'])
     if len(data) > 1:
         logging.exception('multiple instances found on account '+data[0].email)
     data = data[0]
-    
+
     isExec = data['isExec']
 
     if len(isExec) > 0:
@@ -558,6 +645,7 @@ def returnMyAttendance():
     else:
         return renderStandardHtml(data)
 
+
 @app.route('/loadtallywindows', methods=['GET'])
 def returnTallyWindows():
 
@@ -566,18 +654,19 @@ def returnTallyWindows():
         id_token, HTTP_REQUEST)
     if not claims:
         return 'Unauthorized', 401
-    
+
     data = query_database(claims['sub'])
     if len(data) > 1:
         logging.exception('multiple instances found on account '+data[0].email)
     data = data[0]
-    
+
     isExec = data['isExec']
 
     if len(isExec) > 0:
         return renderElevatedTallyContainer(data)
     else:
         return renderTallyContainer(data, claims['sub'])
+
 
 @app.route('/delexec', methods=['POST', 'PUT'])
 def deleteExec():
@@ -588,13 +677,13 @@ def deleteExec():
         return 'Unauthorized', 401
 
     data = query_database(claims['sub'])
-    
+
     if len(data) > 1:
         logging.exception('multiple instances found on account '+data[0].email)
 
     json = request.get_json()
     Club, Exec = json['club'], json['exec']
-    
+
     if data[0]['isExec'][0] != 'admin' and Club not in data[0]['isExec']:
         return 'Unauthorized', 401
 
@@ -604,7 +693,7 @@ def deleteExec():
         logging.exception('multiple ledgers were found in the database')
 
     oldLedger = oldLedger[0]
-    
+
     if Club not in oldLedger['clubData']:
         return 'Club Not In Ledger', 400
 
@@ -615,21 +704,22 @@ def deleteExec():
         return 'Database Error', 500
 
     oldClub = oldClub[0]
-    
+
     if Exec not in oldClub['clubData']:
         return 'Exec Not An Exec', 400
-    
+
     newClub = Account(
-            key=oldClub['key'],
+            key     =oldClub['key'],
             clubData=[],
-            isExec=[])
-    
+            isExec  =[])
+
     oldClub['clubData'].remove(Exec)
     newClub.clubData = oldClub['clubData']
     newClub.isExec.append('server')
     newClub.put()
-    
+
     return 'Exec Removed Successfully.', 200
+
 
 @app.route('/tallywindow', methods=['POST', 'PUT'])
 def modifyTallyWindow():
@@ -640,13 +730,13 @@ def modifyTallyWindow():
         return 'Unauthorized', 401
 
     data = query_database(claims['sub'])
-    
+
     if len(data) > 1:
         logging.exception('multiple instances found on account '+data[0].email)
 
     json = request.get_json()
     Club, action = json['club'], json['action'].lower()
-    
+
     if data[0]['isExec'][0] != 'admin' and Club not in data[0]['isExec']:
         return 'Unauthorized', 401
 
@@ -659,7 +749,7 @@ def modifyTallyWindow():
         logging.exception('multiple ledgers were found in the database')
 
     oldLedger = oldLedger[0]
-    
+
     if Club not in oldLedger['clubData']:
         return 'Club Not In Ledger', 400
 
@@ -671,11 +761,11 @@ def modifyTallyWindow():
 
     oldClub = oldClub[0]
     timerterm = Club+".tallywindowtimer."
-    
+
     cdata = oldClub['clubData']
 
     exist = 0
-    
+
     for i in range(0, len(cdata)):
         each = cdata[i]
         if each.startswith(timerterm):
@@ -695,24 +785,24 @@ def modifyTallyWindow():
                 cdata[i] = timerterm+str(calendar.timegm(time.gmtime())+600)
             exist = 1
             break
-    
+
     if exist == 0:
         if action == 'open':
             cdata.append(timerterm+str(calendar.timegm(time.gmtime())+600))
         else:
             return 'Tally Window Is Already Closed', 400
-    
-    
+
     newClub = Account(
-            key=oldClub['key'],
+            key     =oldClub['key'],
             clubData=[],
-            isExec=[])
-    
+            isExec  =[])
+
     newClub.clubData = cdata
     newClub.isExec.append('server')
     newClub.put()
-    
+
     return 'Exec Removed Successfully.', 200
+
 
 @app.errorhandler(500)
 def server_error(e):
